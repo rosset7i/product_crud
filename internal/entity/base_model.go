@@ -7,17 +7,17 @@ import (
 )
 
 type baseModel struct {
-	Id         uuid.UUID
-	created_at time.Time
-	updated_at time.Time
+	Id        uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func initEntity() baseModel {
 	now := time.Now()
 
 	return baseModel{
-		Id:         uuid.New(),
-		created_at: now,
-		updated_at: now,
+		Id:        uuid.New(),
+		CreatedAt: now,
+		UpdatedAt: now,
 	}
 }

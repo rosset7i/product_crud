@@ -7,12 +7,13 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/rosset7i/zippy/config"
 	"github.com/rosset7i/zippy/internal/dto"
 	"github.com/rosset7i/zippy/internal/entity"
-	"github.com/rosset7i/zippy/internal/infra"
+	"github.com/rosset7i/zippy/internal/infra/database"
 )
 
 func main() {
@@ -39,7 +40,10 @@ func main() {
 	http.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
 		userHandlers(w, r, db)
 	})
-	if err := http.ListenAndServe(config.WebServerPort, nil); err != nil {
+	http.HandleFunc("/products", func(w http.ResponseWriter, r *http.Request) {
+		productHandlers(w, r, db)
+	})
+	if err := http.ListenAndServe(config.WebServerAddress, nil); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -53,6 +57,55 @@ func userHandlers(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 }
 
+func productHandlers(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	if r.Method == http.MethodGet {
+		productGetPaged(w, r, db)
+	}
+}
+
+func productGetPaged(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	pageNumber, err := strconv.Atoi(r.URL.Query().Get("pageNumber"))
+	if err != nil {
+		http.Error(w, "Invalid paging params", http.StatusBadRequest)
+		return
+	}
+	pageSize, err := strconv.Atoi(r.URL.Query().Get("pageSize"))
+	sortBy := r.URL.Query().Get("sortBy")
+	if err != nil || sortBy == "" {
+		http.Error(w, "Invalid paging params", http.StatusBadRequest)
+		return
+	}
+
+	userRepository := database.Product{
+		DB: db,
+	}
+
+	products, err := userRepository.FetchPaged(pageNumber, pageSize, sortBy)
+	if err != nil {
+		http.Error(w, "Products not found", http.StatusNotFound)
+		return
+	}
+
+	productsDtos := make([]dto.FetchProductResponse, 0)
+	for _, product := range products {
+		productsDtos = append(productsDtos, dto.FetchProductResponse{
+			Id:        product.Id.String(),
+			Name:      product.Name,
+			Price:     product.Price,
+			CreatedAt: product.CreatedAt,
+			UpdatedAt: product.UpdatedAt,
+		})
+	}
+
+	response, err := json.Marshal(productsDtos)
+	if err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(response)
+}
+
 func userGet(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	email := r.URL.Query().Get("email")
 	if email == "" {
@@ -60,7 +113,7 @@ func userGet(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	userRepository := infra.UserRepository{
+	userRepository := database.User{
 		DB: db,
 	}
 
@@ -100,11 +153,11 @@ func userPost(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	userRepository := infra.UserRepository{
+	userRepository := database.User{
 		DB: db,
 	}
 
-	err = userRepository.NewUser(user)
+	err = userRepository.Create(user)
 	if err != nil {
 		http.Error(w, "Error while saving the user", http.StatusBadRequest)
 		return
