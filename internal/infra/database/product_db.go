@@ -13,7 +13,7 @@ type Product struct {
 
 func (p *Product) Create(product *entity.Product) error {
 	_, err := p.DB.Exec(
-		"INSERT INTO products (id, name, email, password_hash, created_at, updated_at) VALUES ($1,$2,$3,$4,$5)",
+		"INSERT INTO products (id, name, price, created_at, updated_at) VALUES ($1,$2,$3,$4,$5)",
 		product.Id,
 		product.Name,
 		product.Price,
@@ -50,4 +50,30 @@ func (p *Product) FetchById(id uuid.UUID) (*entity.Product, error) {
 	err := rows.Scan(&product.Id, &product.Name, &product.Price, &product.CreatedAt, &product.UpdatedAt)
 
 	return &product, err
+}
+
+func (p *Product) Update(product *entity.Product) error {
+	product, err := p.FetchById(product.Id)
+	if err != nil {
+		return err
+	}
+
+	_, err = p.DB.Exec(
+		"UPDATE products SET (name, price, updated_at) = ($1, $2, $3) WHERE id = $4",
+		product.Name,
+		product.Price,
+		product.UpdatedAt,
+		product.Id,
+	)
+	return err
+}
+
+func (p *Product) Delete(product *entity.Product) error {
+	product, err := p.FetchById(product.Id)
+	if err != nil {
+		return err
+	}
+
+	_, err = p.DB.Exec("DELETE FROM products WHERE id = $1", product.Id)
+	return err
 }

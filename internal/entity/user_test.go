@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -29,6 +30,12 @@ func TestUserWhenNameIsRequired(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Nil(t, user)
 	assert.Equal(t, ErrNameIsRequired, err)
+}
+
+func TestUserWhenHashFails(t *testing.T) {
+	user, err := NewUser("Matheus", "mh.rossetti2002@gmail.com", strings.Repeat("A", 73))
+	assert.NotNil(t, err)
+	assert.Nil(t, user)
 }
 
 func TestUserWhenEmailIsRequired(t *testing.T) {
