@@ -7,9 +7,9 @@ import (
 )
 
 type baseModel struct {
-	Id        uuid.UUID
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Id        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 func initEntity() baseModel {

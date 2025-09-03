@@ -8,9 +8,9 @@ import (
 
 type User struct {
 	baseModel
-	Name         string
-	Email        string
-	PasswordHash string
+	Name         string `json:"name"`
+	Email        string `json:"email"`
+	PasswordHash string `json:"-"`
 }
 
 var (

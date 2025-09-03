@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/rosset7i/zippy/internal/entity"
@@ -9,6 +10,12 @@ import (
 
 type Product struct {
 	DB *sql.DB
+}
+
+func NewProduct(db *sql.DB) *Product {
+	return &Product{
+		DB: db,
+	}
 }
 
 func (p *Product) Create(product *entity.Product) error {
@@ -24,10 +31,13 @@ func (p *Product) Create(product *entity.Product) error {
 	return err
 }
 
-func (p *Product) FetchPaged(pageNumber, pageSize int, _sortedBy string) ([]entity.Product, error) {
+func (p *Product) FetchPaged(pageNumber, pageSize int, sort string) ([]entity.Product, error) {
+	if sort != "asc" && sort != "desc" {
+		sort = "asc"
+	}
 	var products []entity.Product
 	offset := (pageNumber - 1) * pageSize
-	rows, err := p.DB.Query("SELECT id, name, price, created_at, updated_at FROM products LIMIT $2 OFFSET $3", pageSize, offset)
+	rows, err := p.DB.Query(fmt.Sprintf("SELECT id, name, price, created_at, updated_at FROM products ORDER BY created_at %v LIMIT $1 OFFSET $2", sort), pageSize, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +63,7 @@ func (p *Product) FetchById(id uuid.UUID) (*entity.Product, error) {
 }
 
 func (p *Product) Update(product *entity.Product) error {
-	product, err := p.FetchById(product.Id)
+	_, err := p.FetchById(product.Id)
 	if err != nil {
 		return err
 	}
@@ -68,8 +78,8 @@ func (p *Product) Update(product *entity.Product) error {
 	return err
 }
 
-func (p *Product) Delete(product *entity.Product) error {
-	product, err := p.FetchById(product.Id)
+func (p *Product) Delete(id uuid.UUID) error {
+	product, err := p.FetchById(id)
 	if err != nil {
 		return err
 	}

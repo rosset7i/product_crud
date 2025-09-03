@@ -4,8 +4,8 @@ import "errors"
 
 type Product struct {
 	baseModel
-	Name  string
-	Price float64
+	Name  string  `json:"name"`
+	Price float64 `json:"price"`
 }
 
 var (
