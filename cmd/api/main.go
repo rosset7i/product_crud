@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/jwtauth"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/rosset7i/zippy/config"
 	"github.com/rosset7i/zippy/internal/infra/database"
@@ -35,7 +36,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	userHandler := handlers.NewUserHandler(database.NewUser(db))
+	userHandler := handlers.NewUserHandler(database.NewUser(db), config)
 	productHandler := handlers.NewProductHandler(database.NewProduct(db))
 
 	r := chi.NewRouter()
@@ -45,8 +46,10 @@ func main() {
 		r.Post("/", userHandler.Create)
 	})
 	r.Route("/products", func(r chi.Router) {
+		r.Use(jwtauth.Verifier(config.TokenAuth))
+		r.Use(jwtauth.Authenticator)
 		r.Get("/", productHandler.FetchPaged)
-		r.Get("/fetch-by-id", productHandler.FetchById)
+		r.Get("/{id}", productHandler.FetchById)
 		r.Post("/", productHandler.Create)
 		r.Put("/", productHandler.Update)
 		r.Delete("/", productHandler.Delete)
