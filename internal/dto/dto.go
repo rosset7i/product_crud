@@ -23,3 +23,7 @@ type UpdateProductRequest struct {
 	Name  string    `json:"name"`
 	Price float64   `json:"price"`
 }
+
+type LoginResponse struct {
+	AccessToken string `json:"access_token"`
+}

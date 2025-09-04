@@ -12,6 +12,10 @@ import (
 	"github.com/rosset7i/zippy/internal/infra/database"
 )
 
+type Error struct {
+	Message string `json:"message"`
+}
+
 type UserHandler struct {
 	UserDB       database.UserInterface
 	Jwt          *jwtauth.JWTAuth
@@ -26,23 +30,16 @@ func NewUserHandler(userDb database.UserInterface, config *config.Config) *UserH
 	}
 }
 
-func (h *UserHandler) FetchByEmail(w http.ResponseWriter, r *http.Request) {
-	email := r.URL.Query().Get("email")
-	if email == "" {
-		http.Error(w, "Invalid email", http.StatusBadRequest)
-		return
-	}
-
-	user, err := h.UserDB.FetchByEmail(email)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
-}
-
+// Create user godoc
+// @Summary      Create user
+// @Description  Create user
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        request     body      dto.CreateUserRequest  true  "user request"
+// @Success      201
+// @Failure      500         {object}  Error
+// @Router       /users [post]
 func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var request dto.CreateUserRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
@@ -68,6 +65,17 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
+// GetJWT godoc
+// @Summary      Get a user JWT
+// @Description  Get a user JWT
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        request   body     dto.LoginRequest  true  "user credentials"
+// @Success      200  {object}  dto.LoginResponse
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /users/generate_token [post]
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var request dto.LoginRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
@@ -92,9 +100,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		"exp": time.Now().Add(time.Second * time.Duration(h.JwtExpiresIn)).Unix(),
 	})
 
-	accessToken := struct {
-		AccessToken string `json:"access_token"`
-	}{
+	accessToken := dto.LoginResponse{
 		AccessToken: tokenString,
 	}
 
