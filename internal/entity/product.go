@@ -9,31 +9,30 @@ type Product struct {
 }
 
 var (
-	ErrNameIsRequired             = errors.New("name is required")
-	ErrPriceMustBeGreaterThanZero = errors.New("price must be greater than 0")
+	errNameIsRequired             = errors.New("name is required")
+	errPriceMustBeGreaterThanZero = errors.New("price must be greater than 0")
 )
 
 func NewProduct(name string, price float64) (*Product, error) {
-	product := &Product{
+	p := &Product{
 		baseModel: initEntity(),
 		Name:      name,
 		Price:     price,
 	}
 
-	err := product.Validate()
-	if err != nil {
+	if err := p.Validate(); err != nil {
 		return nil, err
 	}
 
-	return product, nil
+	return p, nil
 }
 
 func (p *Product) Validate() error {
-	if p.Name == "" {
-		return ErrNameIsRequired
-	}
-	if p.Price <= 0 {
-		return ErrPriceMustBeGreaterThanZero
+	switch {
+	case p.Name == "":
+		return errNameIsRequired
+	case p.Price <= 0:
+		return errPriceMustBeGreaterThanZero
 	}
 
 	return nil

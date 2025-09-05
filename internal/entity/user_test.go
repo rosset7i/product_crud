@@ -29,7 +29,7 @@ func TestUserWhenNameIsRequired(t *testing.T) {
 	user, err := NewUser("", "mh.rossetti2002@gmail.com", "123")
 	assert.NotNil(t, err)
 	assert.Nil(t, user)
-	assert.Equal(t, ErrNameIsRequired, err)
+	assert.Equal(t, errNameIsRequired, err)
 }
 
 func TestUserWhenHashFails(t *testing.T) {
@@ -42,7 +42,7 @@ func TestUserWhenEmailIsRequired(t *testing.T) {
 	user, err := NewUser("Matheus", "", "123")
 	assert.NotNil(t, err)
 	assert.Nil(t, user)
-	assert.Equal(t, ErrEmailIsRequired, err)
+	assert.Equal(t, errEmailIsRequired, err)
 }
 
 func TestUserValidate(t *testing.T) {

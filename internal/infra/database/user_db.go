@@ -1,24 +1,42 @@
 package database
 
 import (
-	"database/sql"
+	"context"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rosset7i/zippy/internal/entity"
 )
 
-type User struct {
-	DB *sql.DB
+type UserRepository struct {
+	db *pgxpool.Pool
 }
 
-func NewUser(db *sql.DB) *User {
-	return &User{
-		DB: db,
+func NewUserRepository(db *pgxpool.Pool) *UserRepository {
+	return &UserRepository{
+		db: db,
 	}
 }
 
-func (u *User) Create(user *entity.User) error {
-	_, err := u.DB.Exec(
-		"INSERT INTO users (id, name, email, password_hash, created_at, updated_at) VALUES ($1,$2,$3,$4,$5,$6)",
+func (r *UserRepository) FetchByEmail(email string) (*entity.User, error) {
+	var u entity.User
+	err := r.db.QueryRow(
+		context.Background(),
+		`SELECT id, name, email, password_hash, created_at, updated_at
+		FROM users
+		WHERE email = $1`,
+		email,
+	).Scan(&u.Id, &u.Name, &u.Email, &u.PasswordHash, &u.CreatedAt, &u.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return &u, nil
+}
+
+func (r *UserRepository) Create(user *entity.User) error {
+	_, err := r.db.Exec(
+		context.Background(),
+		"INSERT INTO users (id, name, email, password_hash, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)",
 		user.Id,
 		user.Name,
 		user.Email,
@@ -28,12 +46,4 @@ func (u *User) Create(user *entity.User) error {
 	)
 
 	return err
-}
-
-func (u *User) FetchByEmail(email string) (*entity.User, error) {
-	var user entity.User
-	rows := u.DB.QueryRow("SELECT id, name, email, created_at, updated_at FROM users WHERE email = $1", email)
-	err := rows.Scan(&user.Id, &user.Name, &user.Email, &user.CreatedAt, &user.UpdatedAt)
-
-	return &user, err
 }

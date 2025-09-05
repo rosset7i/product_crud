@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
@@ -10,19 +11,16 @@ import (
 	"github.com/rosset7i/zippy/internal/dto"
 	"github.com/rosset7i/zippy/internal/entity"
 	"github.com/rosset7i/zippy/internal/infra/database"
+	"github.com/rosset7i/zippy/internal/infra/webserver"
 )
 
-type Error struct {
-	Message string `json:"message"`
-}
-
 type UserHandler struct {
-	UserDB       database.UserInterface
+	UserDB       *database.UserRepository
 	Jwt          *jwtauth.JWTAuth
 	JwtExpiresIn int
 }
 
-func NewUserHandler(userDb database.UserInterface, config *config.Config) *UserHandler {
+func NewUserHandler(userDb *database.UserRepository, config *config.Config) *UserHandler {
 	return &UserHandler{
 		UserDB:       userDb,
 		Jwt:          config.TokenAuth,
@@ -30,81 +28,81 @@ func NewUserHandler(userDb database.UserInterface, config *config.Config) *UserH
 	}
 }
 
-// Create user godoc
-// @Summary      Create user
-// @Description  Create user
-// @Tags         users
+var (
+	errInvalidUser = errors.New("invalid email or password")
+)
+
+// Register godoc
+// @Summary      Register a new user
+// @Description  Creates a new user with name, email, and password
+// @Tags         Users
 // @Accept       json
 // @Produce      json
-// @Param        request     body      dto.CreateUserRequest  true  "user request"
-// @Success      201
-// @Failure      500         {object}  Error
-// @Router       /users [post]
-func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var request dto.CreateUserRequest
-	err := json.NewDecoder(r.Body).Decode(&request)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+// @Param        request  body      dto.CreateUserRequest  true  "User registration request"
+// @Success      201      {object}  entity.User
+// @Failure      400      {object}  webserver.ErrorResponse
+// @Failure      500      {object}  webserver.ErrorResponse
+// @Router       /users/register [post]
+func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
+	var req dto.CreateUserRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		webserver.WriteError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	user, err := entity.NewUser(request.Name, request.Email, request.Password)
+	user, err := entity.NewUser(req.Name, req.Email, req.Password)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		webserver.WriteError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	err = h.UserDB.Create(user)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	if err = h.UserDB.Create(user); err != nil {
+		webserver.WriteError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(user)
+	webserver.WriteJSON(w, http.StatusCreated, user)
 }
 
-// GetJWT godoc
-// @Summary      Get a user JWT
-// @Description  Get a user JWT
-// @Tags         users
+// Login godoc
+// @Summary      Authenticate a user
+// @Description  Validates user credentials and returns a JWT token
+// @Tags         Users
 // @Accept       json
 // @Produce      json
-// @Param        request   body     dto.LoginRequest  true  "user credentials"
-// @Success      200  {object}  dto.LoginResponse
-// @Failure      404  {object}  Error
-// @Failure      500  {object}  Error
-// @Router       /users/generate_token [post]
+// @Param        request  body      dto.LoginRequest   true  "User login request"
+// @Success      200      {object}  dto.LoginResponse
+// @Failure      400      {object}  webserver.ErrorResponse
+// @Failure      401      {object}  webserver.ErrorResponse
+// @Failure      404      {object}  webserver.ErrorResponse
+// @Failure      500      {object}  webserver.ErrorResponse
+// @Router       /users/login [post]
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
-	var request dto.LoginRequest
-	err := json.NewDecoder(r.Body).Decode(&request)
+	var req dto.LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		webserver.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	user, err := h.UserDB.FetchByEmail(req.Email)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		webserver.WriteError(w, http.StatusNotFound, errInvalidUser.Error())
 		return
 	}
 
-	user, err := h.UserDB.FetchByEmail(request.Email)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+	if !user.ValidatePassword(req.Password) {
+		webserver.WriteError(w, http.StatusUnauthorized, errInvalidUser.Error())
 		return
 	}
 
-	if !user.ValidatePassword(request.Password) {
-		http.Error(w, "Invalid password", http.StatusUnauthorized)
-		return
-	}
-
-	_, tokenString, _ := h.Jwt.Encode(map[string]any{
+	_, tokenString, err := h.Jwt.Encode(map[string]any{
 		"sub": user.Id.String(),
 		"exp": time.Now().Add(time.Second * time.Duration(h.JwtExpiresIn)).Unix(),
 	})
-
-	accessToken := dto.LoginResponse{
-		AccessToken: tokenString,
+	if err != nil {
+		webserver.WriteError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(accessToken)
+	webserver.WriteJSON(w, http.StatusOK, dto.LoginResponse{AccessToken: tokenString})
 }

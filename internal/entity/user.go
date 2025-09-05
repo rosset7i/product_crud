@@ -14,7 +14,7 @@ type User struct {
 }
 
 var (
-	ErrEmailIsRequired = errors.New("email is required")
+	errEmailIsRequired = errors.New("email is required")
 )
 
 func NewUser(name, email, password string) (*User, error) {
@@ -23,32 +23,32 @@ func NewUser(name, email, password string) (*User, error) {
 		return nil, err
 	}
 
-	user := &User{
+	u := &User{
 		baseModel:    initEntity(),
 		Name:         name,
 		Email:        email,
 		PasswordHash: string(hash),
 	}
 
-	err = user.Validate()
-	if err != nil {
+	if err = u.Validate(); err != nil {
 		return nil, err
 	}
 
-	return user, nil
+	return u, nil
 }
 
 func (u *User) ValidatePassword(password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password))
+
 	return err == nil
 }
 
 func (u *User) Validate() error {
-	if u.Name == "" {
-		return ErrNameIsRequired
-	}
-	if u.Email == "" {
-		return ErrEmailIsRequired
+	switch {
+	case u.Name == "":
+		return errNameIsRequired
+	case u.Email == "":
+		return errEmailIsRequired
 	}
 
 	return nil

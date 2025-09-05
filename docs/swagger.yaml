@@ -28,6 +28,15 @@ definitions:
       access_token:
         type: string
     type: object
+  dto.UpdateProductRequest:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    type: object
   entity.Product:
     properties:
       created_at:
@@ -41,7 +50,20 @@ definitions:
       updated_at:
         type: string
     type: object
-  handlers.Error:
+  entity.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  webserver.ErrorResponse:
     properties:
       message:
         type: string
@@ -50,9 +72,11 @@ host: localhost:7000
 info:
   contact:
     email: support@swagger.io
-    name: API Support
+    name: Zippy API Support
     url: http://www.swagger.io/support
-  description: IDK.
+  description: |-
+    Zippy is an API for managing users and products.
+    It provides authentication endpoints and a product catalog with CRUD operations.
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
@@ -61,18 +85,56 @@ info:
   version: "1.0"
 paths:
   /products:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently delete a product by its ID
+      parameters:
+      - description: Product ID (UUID)
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product deleted successfully
+          schema:
+            type: string
+        "400":
+          description: Invalid product ID
+          schema:
+            $ref: '#/definitions/webserver.ErrorResponse'
+        "404":
+          description: Product not found
+          schema:
+            $ref: '#/definitions/webserver.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/webserver.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Delete a product
+      tags:
+      - products
     get:
       consumes:
       - application/json
-      description: get all products
+      description: Retrieve a paginated list of products with optional sorting
       parameters:
-      - description: page number
+      - description: 'Page number (default: 1)'
         in: query
-        name: page
-        type: string
-      - description: limit
+        name: pageNumber
+        type: integer
+      - description: 'Number of items per page (default: 10)'
         in: query
-        name: limit
+        name: pageSize
+        type: integer
+      - description: 'Sort order: asc or desc (default: asc)'
+        in: query
+        name: sort
         type: string
       produces:
       - application/json
@@ -83,25 +145,25 @@ paths:
             items:
               $ref: '#/definitions/entity.Product'
             type: array
-        "404":
-          description: Not Found
+        "400":
+          description: Invalid query parameters
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/webserver.ErrorResponse'
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/webserver.ErrorResponse'
       security:
-      - ApiKeyAuth: []
+      - Bearer: []
       summary: List products
       tags:
       - products
     post:
       consumes:
       - application/json
-      description: Create products
+      description: Create a new product with a name and price
       parameters:
-      - description: product request
+      - description: Product creation request
         in: body
         name: request
         required: true
@@ -112,50 +174,63 @@ paths:
       responses:
         "201":
           description: Created
-        "500":
-          description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/entity.Product'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/webserver.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/webserver.ErrorResponse'
       security:
-      - ApiKeyAuth: []
-      summary: Create product
+      - Bearer: []
+      summary: Create a new product
       tags:
       - products
-  /products/{id}:
-    delete:
+    put:
       consumes:
       - application/json
-      description: Delete a product
+      description: Update product details (name and price)
       parameters:
-      - description: product ID
-        format: uuid
-        in: path
-        name: id
+      - description: Product update request
+        in: body
+        name: request
         required: true
-        type: string
+        schema:
+          $ref: '#/definitions/dto.UpdateProductRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
-        "404":
-          description: Not Found
-        "500":
-          description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/entity.Product'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/webserver.ErrorResponse'
+        "404":
+          description: Product not found
+          schema:
+            $ref: '#/definitions/webserver.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/webserver.ErrorResponse'
       security:
-      - ApiKeyAuth: []
-      summary: Delete a product
+      - Bearer: []
+      summary: Update an existing product
       tags:
       - products
+  /products/{id}:
     get:
       consumes:
       - application/json
-      description: Get a product
+      description: Retrieve details of a single product by its ID
       parameters:
-      - description: product ID
-        format: uuid
+      - description: Product ID (UUID)
         in: path
         name: id
         required: true
@@ -167,81 +242,30 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/entity.Product'
-        "404":
-          description: Not Found
-        "500":
-          description: Internal Server Error
+        "400":
+          description: Invalid product ID
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/webserver.ErrorResponse'
+        "404":
+          description: Product not found
+          schema:
+            $ref: '#/definitions/webserver.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/webserver.ErrorResponse'
       security:
-      - ApiKeyAuth: []
-      summary: Get a product
+      - Bearer: []
+      summary: Get product by ID
       tags:
       - products
-    put:
-      consumes:
-      - application/json
-      description: Update a product
-      parameters:
-      - description: product ID
-        format: uuid
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: product request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateProductRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-        "404":
-          description: Not Found
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.Error'
-      security:
-      - ApiKeyAuth: []
-      summary: Update a product
-      tags:
-      - products
-  /users:
+  /users/login:
     post:
       consumes:
       - application/json
-      description: Create user
+      description: Validates user credentials and returns a JWT token
       parameters:
-      - description: user request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateUserRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.Error'
-      summary: Create user
-      tags:
-      - users
-  /users/generate_token:
-    post:
-      consumes:
-      - application/json
-      description: Get a user JWT
-      parameters:
-      - description: user credentials
+      - description: User login request
         in: body
         name: request
         required: true
@@ -254,19 +278,57 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/dto.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/webserver.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/webserver.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/webserver.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.Error'
-      summary: Get a user JWT
+            $ref: '#/definitions/webserver.ErrorResponse'
+      summary: Authenticate a user
       tags:
-      - users
+      - Users
+  /users/register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user with name, email, and password
+      parameters:
+      - description: User registration request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/webserver.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/webserver.ErrorResponse'
+      summary: Register a new user
+      tags:
+      - Users
 securityDefinitions:
-  ApiKeyAuth:
+  Bearer:
     in: header
     name: Authorization
     type: apiKey
