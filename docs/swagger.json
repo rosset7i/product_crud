@@ -1,11 +1,11 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "Zippy is an API for managing users and products.\nIt provides authentication endpoints and a product catalog with CRUD operations.",
-        "title": "Zippy API",
+        "description": "product_crud is an API for managing users and products.\nIt provides authentication endpoints and a product catalog with CRUD operations.",
+        "title": "product_crud API",
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
-            "name": "Zippy API Support",
+            "name": "product_crud API Support",
             "url": "http://www.swagger.io/support",
             "email": "support@swagger.io"
         },

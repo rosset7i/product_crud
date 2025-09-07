@@ -1,4 +1,4 @@
-module github.com/rosset7i/zippy
+module github.com/rosset7i/product_crud
 
 go 1.25.0
 

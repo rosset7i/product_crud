@@ -11,7 +11,7 @@ const docTemplate = `{
         "title": "{{.Title}}",
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
-            "name": "Zippy API Support",
+            "name": "product_crud API Support",
             "url": "http://www.swagger.io/support",
             "email": "support@swagger.io"
         },
@@ -527,8 +527,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:7000",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "Zippy API",
-	Description:      "Zippy is an API for managing users and products.\nIt provides authentication endpoints and a product catalog with CRUD operations.",
+	Title:            "product_crud API",
+	Description:      "product_crud is an API for managing users and products.\nIt provides authentication endpoints and a product catalog with CRUD operations.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

@@ -72,16 +72,16 @@ host: localhost:7000
 info:
   contact:
     email: support@swagger.io
-    name: Zippy API Support
+    name: ProductCrud API Support
     url: http://www.swagger.io/support
   description: |-
-    Zippy is an API for managing users and products.
+    ProductCrud is an API for managing users and products.
     It provides authentication endpoints and a product catalog with CRUD operations.
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
-  title: Zippy API
+  title: ProductCrud API
   version: "1.0"
 paths:
   /products:

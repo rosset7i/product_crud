@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/rosset7i/zippy/internal/entity"
+	"github.com/rosset7i/product_crud/internal/entity"
 )
 
 type UserRepository struct {

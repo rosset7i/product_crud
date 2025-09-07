@@ -10,21 +10,21 @@ import (
 	"github.com/go-chi/jwtauth"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"github.com/rosset7i/zippy/config"
-	_ "github.com/rosset7i/zippy/docs"
-	"github.com/rosset7i/zippy/internal/infra/database"
-	"github.com/rosset7i/zippy/internal/infra/webserver/handlers"
+	"github.com/rosset7i/product_crud/config"
+	_ "github.com/rosset7i/product_crud/docs"
+	"github.com/rosset7i/product_crud/internal/infra/database"
+	"github.com/rosset7i/product_crud/internal/infra/webserver/handlers"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-// @title           Zippy API
+// @title           product_crud API
 // @version         1.0
-// @description     Zippy is an API for managing users and products.
+// @description     product_crud is an API for managing users and products.
 // @description     It provides authentication endpoints and a product catalog with CRUD operations.
 //
 // @termsOfService  http://swagger.io/terms/
 //
-// @contact.name    Zippy API Support
+// @contact.name    product_crud API Support
 // @contact.url     http://www.swagger.io/support
 // @contact.email   support@swagger.io
 //

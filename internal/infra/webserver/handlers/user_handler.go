@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth"
-	"github.com/rosset7i/zippy/config"
-	"github.com/rosset7i/zippy/internal/dto"
-	"github.com/rosset7i/zippy/internal/entity"
-	"github.com/rosset7i/zippy/internal/infra/database"
-	"github.com/rosset7i/zippy/internal/infra/webserver"
+	"github.com/rosset7i/product_crud/config"
+	"github.com/rosset7i/product_crud/internal/dto"
+	"github.com/rosset7i/product_crud/internal/entity"
+	"github.com/rosset7i/product_crud/internal/infra/database"
+	"github.com/rosset7i/product_crud/internal/infra/webserver"
 )
 
 type UserHandler struct {

@@ -3,7 +3,7 @@ version: "3.8"
 services:
   postgres:
     image: postgres:17.5
-    container_name: zippy_database
+    container_name: product_crud_database
     ports:
       - "5432:5432"
     environment:
@@ -17,4 +17,4 @@ volumes:
 
 networks:
   default:
-    name: zippy
+    name: product_crud
