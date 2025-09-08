@@ -4,6 +4,9 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -49,10 +52,41 @@ func main() {
 	}
 	defer db.Close()
 
+	server := &http.Server{
+		Addr:    cfg.WebServerAddress,
+		Handler: router(cfg, db),
+	}
+
+	shutdown := make(chan bool)
+
+	go gracefulShutdown(server, shutdown)
+
 	log.Printf("Starting server at %s", cfg.WebServerAddress)
-	if err := http.ListenAndServe(cfg.WebServerAddress, router(cfg, db)); err != nil {
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
+
+	<-shutdown
+	log.Printf("Server exited.")
+}
+
+func gracefulShutdown(server *http.Server, shutdown chan bool) {
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
+
+	<-ctx.Done()
+	stop()
+
+	log.Println("shutting down gracefully, press Ctrl+C again to force")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatalf("Server forced to shutdown: %v", err)
+	}
+
+	log.Println("Graceful shutdown complete.")
+	shutdown <- true
 }
 
 func router(cfg *config.Config, db *pgxpool.Pool) http.Handler {
