@@ -45,19 +45,19 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Page number (default: 1)",
+                        "description": "pageNumber",
                         "name": "pageNumber",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "Number of items per page (default: 10)",
+                        "description": "pageSize",
                         "name": "pageSize",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Sort order: asc or desc (default: asc)",
+                        "description": "sort",
                         "name": "sort",
                         "in": "query"
                     }
@@ -66,22 +66,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/entity.Product"
-                            }
+                            "$ref": "#/definitions/product.FetchPagedProductsResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid query parameters",
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/webserver.ErrorResponse"
+                            "$ref": "#/definitions/web.errorResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal server error",
+                    "422": {
+                        "description": "Unprocessable Entity",
                         "schema": {
-                            "$ref": "#/definitions/webserver.ErrorResponse"
+                            "$ref": "#/definitions/web.errorResponse"
                         }
                     }
                 }
@@ -105,12 +102,12 @@ const docTemplate = `{
                 "summary": "Update an existing product",
                 "parameters": [
                     {
-                        "description": "Product update request",
+                        "description": "UpdateRequest",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.UpdateProductRequest"
+                            "$ref": "#/definitions/product.UpdateRequest"
                         }
                     }
                 ],
@@ -118,25 +115,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/entity.Product"
+                            "$ref": "#/definitions/product.UpdateResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid request payload",
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/webserver.ErrorResponse"
+                            "$ref": "#/definitions/web.errorResponse"
                         }
                     },
-                    "404": {
-                        "description": "Product not found",
+                    "422": {
+                        "description": "Unprocessable Entity",
                         "schema": {
-                            "$ref": "#/definitions/webserver.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/webserver.ErrorResponse"
+                            "$ref": "#/definitions/web.errorResponse"
                         }
                     }
                 }
@@ -160,12 +151,12 @@ const docTemplate = `{
                 "summary": "Create a new product",
                 "parameters": [
                     {
-                        "description": "Product creation request",
+                        "description": "CreateRequest",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateProductRequest"
+                            "$ref": "#/definitions/product.CreateRequest"
                         }
                     }
                 ],
@@ -173,19 +164,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/entity.Product"
+                            "$ref": "#/definitions/product.CreateResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid request payload",
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/webserver.ErrorResponse"
+                            "$ref": "#/definitions/web.errorResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal server error",
+                    "422": {
+                        "description": "Unprocessable Entity",
                         "schema": {
-                            "$ref": "#/definitions/webserver.ErrorResponse"
+                            "$ref": "#/definitions/web.errorResponse"
                         }
                     }
                 }
@@ -210,7 +201,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Product ID (UUID)",
+                        "description": "id",
                         "name": "id",
                         "in": "query",
                         "required": true
@@ -218,27 +209,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Product deleted successfully",
+                        "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/product.DeleteResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid product ID",
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/webserver.ErrorResponse"
+                            "$ref": "#/definitions/web.errorResponse"
                         }
                     },
-                    "404": {
-                        "description": "Product not found",
+                    "422": {
+                        "description": "Unprocessable Entity",
                         "schema": {
-                            "$ref": "#/definitions/webserver.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/webserver.ErrorResponse"
+                            "$ref": "#/definitions/web.errorResponse"
                         }
                     }
                 }
@@ -265,7 +250,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Product ID (UUID)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -275,25 +260,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/entity.Product"
+                            "$ref": "#/definitions/product.FetchByIdResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid product ID",
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/webserver.ErrorResponse"
+                            "$ref": "#/definitions/web.errorResponse"
                         }
                     },
                     "404": {
-                        "description": "Product not found",
+                        "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/webserver.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/webserver.ErrorResponse"
+                            "$ref": "#/definitions/web.errorResponse"
                         }
                     }
                 }
@@ -314,12 +293,12 @@ const docTemplate = `{
                 "summary": "Authenticate a user",
                 "parameters": [
                     {
-                        "description": "User login request",
+                        "description": "LoginRequest",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.LoginRequest"
+                            "$ref": "#/definitions/user.LoginRequest"
                         }
                     }
                 ],
@@ -327,31 +306,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.LoginResponse"
+                            "$ref": "#/definitions/user.LoginResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/webserver.ErrorResponse"
+                            "$ref": "#/definitions/web.errorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/webserver.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/webserver.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/webserver.ErrorResponse"
+                            "$ref": "#/definitions/web.errorResponse"
                         }
                     }
                 }
@@ -372,12 +339,12 @@ const docTemplate = `{
                 "summary": "Register a new user",
                 "parameters": [
                     {
-                        "description": "User registration request",
+                        "description": "RegisterRequest",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateUserRequest"
+                            "$ref": "#/definitions/user.RegisterRequest"
                         }
                     }
                 ],
@@ -385,19 +352,13 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/entity.User"
+                            "$ref": "#/definitions/user.RegisterResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/webserver.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/webserver.ErrorResponse"
+                            "$ref": "#/definitions/web.errorResponse"
                         }
                     }
                 }
@@ -405,7 +366,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.CreateProductRequest": {
+        "product.CreateRequest": {
             "type": "object",
             "properties": {
                 "name": {
@@ -416,21 +377,96 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateUserRequest": {
+        "product.CreateResponse": {
             "type": "object",
             "properties": {
-                "email": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "product.DeleteResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "product.FetchByIdResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
                     "type": "string"
                 },
                 "name": {
                     "type": "string"
                 },
-                "password": {
+                "price": {
+                    "type": "number"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
         },
-        "dto.LoginRequest": {
+        "product.FetchPagedProductsResponse": {
+            "type": "object",
+            "properties": {
+                "products": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/product.ProductResponse"
+                    }
+                }
+            }
+        },
+        "product.ProductResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "product.UpdateRequest": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
+        "product.UpdateResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.LoginRequest": {
             "type": "object",
             "properties": {
                 "email": {
@@ -441,7 +477,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.LoginResponse": {
+        "user.LoginResponse": {
             "type": "object",
             "properties": {
                 "access_token": {
@@ -449,61 +485,29 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.UpdateProductRequest": {
+        "user.RegisterRequest": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "price": {
-                    "type": "number"
-                }
-            }
-        },
-        "entity.Product": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "price": {
-                    "type": "number"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "entity.User": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
                 "email": {
                     "type": "string"
                 },
-                "id": {
-                    "type": "string"
-                },
                 "name": {
                     "type": "string"
                 },
-                "updated_at": {
+                "password": {
                     "type": "string"
                 }
             }
         },
-        "webserver.ErrorResponse": {
+        "user.RegisterResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "web.errorResponse": {
             "type": "object",
             "properties": {
                 "message": {

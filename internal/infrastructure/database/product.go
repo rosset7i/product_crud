@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/rosset7i/product_crud/internal/entity"
+	"github.com/rosset7i/product_crud/internal/domain"
 )
 
 type ProductRepository struct {
@@ -19,7 +19,7 @@ func NewProductRepository(db *pgxpool.Pool) *ProductRepository {
 	}
 }
 
-func (r *ProductRepository) FetchPaged(pageNumber, pageSize int, sort string) ([]entity.Product, error) {
+func (r *ProductRepository) FetchPaged(ctx context.Context, pageNumber, pageSize int, sort string) ([]domain.Product, error) {
 	if sort != "asc" && sort != "desc" {
 		sort = "asc"
 	}
@@ -38,9 +38,9 @@ func (r *ProductRepository) FetchPaged(pageNumber, pageSize int, sort string) ([
 	}
 	defer rows.Close()
 
-	products := make([]entity.Product, 0)
+	products := make([]domain.Product, 0)
 	for rows.Next() {
-		var p entity.Product
+		var p domain.Product
 		if err := rows.Scan(&p.Id, &p.Name, &p.Price, &p.CreatedAt, &p.UpdatedAt); err != nil {
 			return nil, err
 		}
@@ -50,8 +50,8 @@ func (r *ProductRepository) FetchPaged(pageNumber, pageSize int, sort string) ([
 	return products, rows.Err()
 }
 
-func (r *ProductRepository) FetchById(id uuid.UUID) (*entity.Product, error) {
-	var p entity.Product
+func (r *ProductRepository) FetchById(ctx context.Context, id uuid.UUID) (*domain.Product, error) {
+	var p domain.Product
 	err := r.db.QueryRow(
 		context.Background(),
 		`SELECT id, name, price, created_at, updated_at
@@ -66,7 +66,7 @@ func (r *ProductRepository) FetchById(id uuid.UUID) (*entity.Product, error) {
 	return &p, nil
 }
 
-func (r *ProductRepository) Create(product *entity.Product) error {
+func (r *ProductRepository) Create(ctx context.Context, product *domain.Product) error {
 	_, err := r.db.Exec(
 		context.Background(),
 		"INSERT INTO products (id, name, price, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)",
@@ -80,7 +80,7 @@ func (r *ProductRepository) Create(product *entity.Product) error {
 	return err
 }
 
-func (r *ProductRepository) Update(product *entity.Product) error {
+func (r *ProductRepository) Update(ctx context.Context, product *domain.Product) error {
 	cmd, err := r.db.Exec(
 		context.Background(),
 		"UPDATE products SET (name, price, updated_at) = ($1, $2, $3) WHERE id = $4",
@@ -99,7 +99,7 @@ func (r *ProductRepository) Update(product *entity.Product) error {
 	return err
 }
 
-func (r *ProductRepository) Delete(id uuid.UUID) error {
+func (r *ProductRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	cmd, err := r.db.Exec(
 		context.Background(),
 		"DELETE FROM products WHERE id = $1",

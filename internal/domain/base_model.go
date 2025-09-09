@@ -1,4 +1,4 @@
-package entity
+package domain
 
 import (
 	"time"
@@ -7,9 +7,9 @@ import (
 )
 
 type baseModel struct {
-	Id        uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	Id        uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func initEntity() baseModel {

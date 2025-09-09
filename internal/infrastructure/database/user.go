@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/rosset7i/product_crud/internal/entity"
+	"github.com/rosset7i/product_crud/internal/domain"
 )
 
 type UserRepository struct {
@@ -17,8 +17,8 @@ func NewUserRepository(db *pgxpool.Pool) *UserRepository {
 	}
 }
 
-func (r *UserRepository) FetchByEmail(email string) (*entity.User, error) {
-	var u entity.User
+func (r *UserRepository) FetchByEmail(ctx context.Context, email string) (*domain.User, error) {
+	var u domain.User
 	err := r.db.QueryRow(
 		context.Background(),
 		`SELECT id, name, email, password_hash, created_at, updated_at
@@ -33,7 +33,7 @@ func (r *UserRepository) FetchByEmail(email string) (*entity.User, error) {
 	return &u, nil
 }
 
-func (r *UserRepository) Create(user *entity.User) error {
+func (r *UserRepository) Create(ctx context.Context, user *domain.User) error {
 	_, err := r.db.Exec(
 		context.Background(),
 		"INSERT INTO users (id, name, email, password_hash, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)",

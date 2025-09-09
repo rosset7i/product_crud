@@ -1,11 +1,11 @@
-package entity
+package domain
 
 import "errors"
 
 type Product struct {
 	baseModel
-	Name  string  `json:"name"`
-	Price float64 `json:"price"`
+	Name  string
+	Price float64
 }
 
 var (

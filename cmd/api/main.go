@@ -16,8 +16,8 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/rosset7i/product_crud/config"
 	_ "github.com/rosset7i/product_crud/docs"
-	"github.com/rosset7i/product_crud/internal/infra/database"
-	"github.com/rosset7i/product_crud/internal/infra/webserver/handlers"
+	"github.com/rosset7i/product_crud/internal/infrastructure/database"
+	"github.com/rosset7i/product_crud/internal/infrastructure/web"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -50,17 +50,20 @@ func main() {
 	}
 	defer db.Close()
 
-	server := &http.Server{
-		Addr:    fmt.Sprintf(":%d", c.Server.Port),
-		Handler: router(c, db),
+	s := &http.Server{
+		Addr:         fmt.Sprintf(":%d", c.Server.Port),
+		Handler:      router(c, db),
+		ReadTimeout:  c.Server.TimeoutRead,
+		WriteTimeout: c.Server.TimeoutWrite,
+		IdleTimeout:  c.Server.TimeoutIdle,
 	}
 
 	shutdown := make(chan bool)
 
-	go gracefulShutdown(server, shutdown)
+	go gracefulShutdown(s, shutdown)
 
 	log.Printf("Starting server at :%d", c.Server.Port)
-	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
 
@@ -68,7 +71,7 @@ func main() {
 	log.Printf("Server exited.")
 }
 
-func gracefulShutdown(server *http.Server, shutdown chan bool) {
+func gracefulShutdown(s *http.Server, shutdown chan bool) {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 
 	<-ctx.Done()
@@ -79,7 +82,7 @@ func gracefulShutdown(server *http.Server, shutdown chan bool) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err := server.Shutdown(ctx); err != nil {
+	if err := s.Shutdown(ctx); err != nil {
 		log.Fatalf("Server forced to shutdown: %v", err)
 	}
 
@@ -88,13 +91,12 @@ func gracefulShutdown(server *http.Server, shutdown chan bool) {
 }
 
 func router(c *config.Conf, db *pgxpool.Pool) http.Handler {
-	userHandler := handlers.NewUserHandler(database.NewUserRepository(db), c)
-	productHandler := handlers.NewProductHandler(database.NewProductRepository(db))
+	userHandler := web.NewUserHandler(database.NewUserRepository(db), c)
+	productHandler := web.NewProductHandler(database.NewProductRepository(db))
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-
 	r.Route("/users", func(r chi.Router) {
 		r.Post("/register", userHandler.Register)
 		r.Post("/login", userHandler.Login)

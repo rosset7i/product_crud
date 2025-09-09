@@ -1,4 +1,4 @@
-package entity
+package domain
 
 import (
 	"errors"
@@ -8,9 +8,9 @@ import (
 
 type User struct {
 	baseModel
-	Name         string `json:"name"`
-	Email        string `json:"email"`
-	PasswordHash string `json:"-"`
+	Name         string
+	Email        string
+	PasswordHash string
 }
 
 var (

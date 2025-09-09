@@ -1,69 +1,96 @@
 basePath: /
 definitions:
-  dto.CreateProductRequest:
+  product.CreateRequest:
     properties:
       name:
         type: string
       price:
         type: number
     type: object
-  dto.CreateUserRequest:
+  product.CreateResponse:
     properties:
-      email:
+      id:
+        type: string
+    type: object
+  product.DeleteResponse:
+    properties:
+      id:
+        type: string
+    type: object
+  product.FetchByIdResponse:
+    properties:
+      created_at:
+        type: string
+      id:
         type: string
       name:
         type: string
-      password:
+      price:
+        type: number
+      updated_at:
         type: string
     type: object
-  dto.LoginRequest:
+  product.FetchPagedProductsResponse:
+    properties:
+      products:
+        items:
+          $ref: '#/definitions/product.ProductResponse'
+        type: array
+    type: object
+  product.ProductResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      updated_at:
+        type: string
+    type: object
+  product.UpdateRequest:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    type: object
+  product.UpdateResponse:
+    properties:
+      id:
+        type: string
+    type: object
+  user.LoginRequest:
     properties:
       email:
         type: string
       password:
         type: string
     type: object
-  dto.LoginResponse:
+  user.LoginResponse:
     properties:
       access_token:
         type: string
     type: object
-  dto.UpdateProductRequest:
+  user.RegisterRequest:
     properties:
-      id:
-        type: string
-      name:
-        type: string
-      price:
-        type: number
-    type: object
-  entity.Product:
-    properties:
-      created_at:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-      price:
-        type: number
-      updated_at:
-        type: string
-    type: object
-  entity.User:
-    properties:
-      created_at:
-        type: string
       email:
         type: string
-      id:
-        type: string
       name:
         type: string
-      updated_at:
+      password:
         type: string
     type: object
-  webserver.ErrorResponse:
+  user.RegisterResponse:
+    properties:
+      id:
+        type: string
+    type: object
+  web.errorResponse:
     properties:
       message:
         type: string
@@ -72,16 +99,16 @@ host: localhost:7000
 info:
   contact:
     email: support@swagger.io
-    name: ProductCrud API Support
+    name: product_crud API Support
     url: http://www.swagger.io/support
   description: |-
-    ProductCrud is an API for managing users and products.
+    product_crud is an API for managing users and products.
     It provides authentication endpoints and a product catalog with CRUD operations.
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
-  title: ProductCrud API
+  title: product_crud API
   version: "1.0"
 paths:
   /products:
@@ -90,7 +117,7 @@ paths:
       - application/json
       description: Permanently delete a product by its ID
       parameters:
-      - description: Product ID (UUID)
+      - description: id
         in: query
         name: id
         required: true
@@ -99,21 +126,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: Product deleted successfully
+          description: OK
           schema:
-            type: string
+            $ref: '#/definitions/product.DeleteResponse'
         "400":
-          description: Invalid product ID
+          description: Bad Request
           schema:
-            $ref: '#/definitions/webserver.ErrorResponse'
-        "404":
-          description: Product not found
+            $ref: '#/definitions/web.errorResponse'
+        "422":
+          description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/webserver.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/webserver.ErrorResponse'
+            $ref: '#/definitions/web.errorResponse'
       security:
       - Bearer: []
       summary: Delete a product
@@ -124,15 +147,15 @@ paths:
       - application/json
       description: Retrieve a paginated list of products with optional sorting
       parameters:
-      - description: 'Page number (default: 1)'
+      - description: pageNumber
         in: query
         name: pageNumber
         type: integer
-      - description: 'Number of items per page (default: 10)'
+      - description: pageSize
         in: query
         name: pageSize
         type: integer
-      - description: 'Sort order: asc or desc (default: asc)'
+      - description: sort
         in: query
         name: sort
         type: string
@@ -142,17 +165,15 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/entity.Product'
-            type: array
+            $ref: '#/definitions/product.FetchPagedProductsResponse'
         "400":
-          description: Invalid query parameters
+          description: Bad Request
           schema:
-            $ref: '#/definitions/webserver.ErrorResponse'
-        "500":
-          description: Internal server error
+            $ref: '#/definitions/web.errorResponse'
+        "422":
+          description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/webserver.ErrorResponse'
+            $ref: '#/definitions/web.errorResponse'
       security:
       - Bearer: []
       summary: List products
@@ -163,27 +184,27 @@ paths:
       - application/json
       description: Create a new product with a name and price
       parameters:
-      - description: Product creation request
+      - description: CreateRequest
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateProductRequest'
+          $ref: '#/definitions/product.CreateRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/entity.Product'
+            $ref: '#/definitions/product.CreateResponse'
         "400":
-          description: Invalid request payload
+          description: Bad Request
           schema:
-            $ref: '#/definitions/webserver.ErrorResponse'
-        "500":
-          description: Internal server error
+            $ref: '#/definitions/web.errorResponse'
+        "422":
+          description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/webserver.ErrorResponse'
+            $ref: '#/definitions/web.errorResponse'
       security:
       - Bearer: []
       summary: Create a new product
@@ -194,31 +215,27 @@ paths:
       - application/json
       description: Update product details (name and price)
       parameters:
-      - description: Product update request
+      - description: UpdateRequest
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.UpdateProductRequest'
+          $ref: '#/definitions/product.UpdateRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/entity.Product'
+            $ref: '#/definitions/product.UpdateResponse'
         "400":
-          description: Invalid request payload
+          description: Bad Request
           schema:
-            $ref: '#/definitions/webserver.ErrorResponse'
-        "404":
-          description: Product not found
+            $ref: '#/definitions/web.errorResponse'
+        "422":
+          description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/webserver.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/webserver.ErrorResponse'
+            $ref: '#/definitions/web.errorResponse'
       security:
       - Bearer: []
       summary: Update an existing product
@@ -230,7 +247,7 @@ paths:
       - application/json
       description: Retrieve details of a single product by its ID
       parameters:
-      - description: Product ID (UUID)
+      - description: id
         in: path
         name: id
         required: true
@@ -241,19 +258,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/entity.Product'
+            $ref: '#/definitions/product.FetchByIdResponse'
         "400":
-          description: Invalid product ID
+          description: Bad Request
           schema:
-            $ref: '#/definitions/webserver.ErrorResponse'
+            $ref: '#/definitions/web.errorResponse'
         "404":
-          description: Product not found
+          description: Not Found
           schema:
-            $ref: '#/definitions/webserver.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/webserver.ErrorResponse'
+            $ref: '#/definitions/web.errorResponse'
       security:
       - Bearer: []
       summary: Get product by ID
@@ -265,35 +278,27 @@ paths:
       - application/json
       description: Validates user credentials and returns a JWT token
       parameters:
-      - description: User login request
+      - description: LoginRequest
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.LoginRequest'
+          $ref: '#/definitions/user.LoginRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.LoginResponse'
+            $ref: '#/definitions/user.LoginResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/webserver.ErrorResponse'
+            $ref: '#/definitions/web.errorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/webserver.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/webserver.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/webserver.ErrorResponse'
+            $ref: '#/definitions/web.errorResponse'
       summary: Authenticate a user
       tags:
       - Users
@@ -303,27 +308,23 @@ paths:
       - application/json
       description: Creates a new user with name, email, and password
       parameters:
-      - description: User registration request
+      - description: RegisterRequest
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateUserRequest'
+          $ref: '#/definitions/user.RegisterRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/entity.User'
+            $ref: '#/definitions/user.RegisterResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/webserver.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/webserver.ErrorResponse'
+            $ref: '#/definitions/web.errorResponse'
       summary: Register a new user
       tags:
       - Users
