@@ -1,73 +1,50 @@
 package config
 
 import (
-	"errors"
-	"fmt"
-	"os"
-	"strconv"
+	"log"
+	"time"
 
 	"github.com/go-chi/jwtauth"
+	"github.com/joeshaw/envdecode"
 	_ "github.com/joho/godotenv/autoload"
 )
 
-var cfg *Config
-
-type Config struct {
-	DBDriver         string
-	ConnectionString string
-	WebServerAddress string
-	JWTSecret        string
-	JWTExpiresIn     int
-	TokenAuth        *jwtauth.JWTAuth
+type Conf struct {
+	Auth   ConfAuth
+	Server ConfServer
+	DB     ConfDB
 }
 
-var (
-	ErrCouldNotLoadEnvVars = errors.New("could not load all required environment variables")
-)
+type ConfAuth struct {
+	JwtSecret    string        `env:"JWT_SECRET,required"`
+	JwtExpiresIn time.Duration `env:"JWT_EXPIRES_IN,required"`
+	JwtAuth      *jwtauth.JWTAuth
+}
 
-func LoadConfig() (*Config, error) {
-	if cfg != nil {
-		return cfg, nil
+type ConfServer struct {
+	Port         int           `env:"SERVER_PORT,required"`
+	TimeoutRead  time.Duration `env:"SERVER_TIMEOUT_READ,required"`
+	TimeoutWrite time.Duration `env:"SERVER_TIMEOUT_WRITE,required"`
+	TimeoutIdle  time.Duration `env:"SERVER_TIMEOUT_IDLE,required"`
+	Debug        bool          `env:"SERVER_DEBUG,required"`
+}
+
+type ConfDB struct {
+	Host     string `env:"DB_HOST,required"`
+	Port     int    `env:"DB_PORT,required"`
+	Username string `env:"DB_USER,required"`
+	Password string `env:"DB_PASS,required"`
+	DBName   string `env:"DB_NAME,required"`
+	Debug    bool   `env:"DB_DEBUG,required"`
+}
+
+func New() *Conf {
+	var c Conf
+	if err := envdecode.StrictDecode(&c); err != nil {
+		log.Fatalf("Failed to decode: %s", err)
 	}
 
-	dBDriver := os.Getenv("DB_DRIVER")
-	dBHost := os.Getenv("DB_HOST")
-	dBPort := os.Getenv("DB_PORT")
-	dBUser := os.Getenv("DB_USER")
-	dBPassword := os.Getenv("DB_PASSWORD")
-	dBName := os.Getenv("DB_NAME")
-	webServerAddress := os.Getenv("WEB_SERVER_ADDRESS")
-	jwtSecret := os.Getenv("JWT_SECRET")
-	jwtExpiresInEnv := os.Getenv("JWT_EXPIRES_IN")
+	c.Auth.JwtAuth = jwtauth.New("HS256", []byte(c.Auth.JwtSecret), nil)
 
-	jwtExpiresIn, err := strconv.Atoi(jwtExpiresInEnv)
-	if err != nil || jwtSecret == "" {
-		return nil, fmt.Errorf("%w: invalid JWT config", ErrCouldNotLoadEnvVars)
-	}
-
-	if dBDriver == "" || dBHost == "" || dBPort == "" || dBUser == "" || dBPassword == "" || dBName == "" {
-		return nil, fmt.Errorf("%w: missing database configuration", ErrCouldNotLoadEnvVars)
-	}
-
-	connectionString := fmt.Sprintf(
-		"dbname=%v user=%v password=%v host=%v port=%v sslmode=disable client_encoding=UTF8",
-		dBName,
-		dBUser,
-		dBPassword,
-		dBHost,
-		dBPort,
-	)
-
-	tokenAuth := jwtauth.New("HS256", []byte(jwtSecret), nil)
-
-	cfg = &Config{
-		DBDriver:         dBDriver,
-		ConnectionString: connectionString,
-		WebServerAddress: webServerAddress,
-		JWTSecret:        jwtSecret,
-		JWTExpiresIn:     jwtExpiresIn,
-		TokenAuth:        tokenAuth,
-	}
-
-	return cfg, nil
+	return &c
 }

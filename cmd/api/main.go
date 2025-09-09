@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os/signal"
@@ -41,27 +42,24 @@ import (
 // @in                        header
 // @name                      Authorization
 func main() {
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
+	c := config.New()
 
-	db, err := database.NewPool(context.Background(), cfg.ConnectionString)
+	db, err := database.New(context.Background(), &c.DB)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
 	server := &http.Server{
-		Addr:    cfg.WebServerAddress,
-		Handler: router(cfg, db),
+		Addr:    fmt.Sprintf(":%d", c.Server.Port),
+		Handler: router(c, db),
 	}
 
 	shutdown := make(chan bool)
 
 	go gracefulShutdown(server, shutdown)
 
-	log.Printf("Starting server at %s", cfg.WebServerAddress)
+	log.Printf("Starting server at :%d", c.Server.Port)
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
@@ -89,8 +87,8 @@ func gracefulShutdown(server *http.Server, shutdown chan bool) {
 	shutdown <- true
 }
 
-func router(cfg *config.Config, db *pgxpool.Pool) http.Handler {
-	userHandler := handlers.NewUserHandler(database.NewUserRepository(db), cfg)
+func router(c *config.Conf, db *pgxpool.Pool) http.Handler {
+	userHandler := handlers.NewUserHandler(database.NewUserRepository(db), c)
 	productHandler := handlers.NewProductHandler(database.NewProductRepository(db))
 
 	r := chi.NewRouter()
@@ -103,7 +101,7 @@ func router(cfg *config.Config, db *pgxpool.Pool) http.Handler {
 	})
 
 	r.Route("/products", func(r chi.Router) {
-		r.Use(jwtauth.Verifier(cfg.TokenAuth))
+		r.Use(jwtauth.Verifier(c.Auth.JwtAuth))
 		r.Use(jwtauth.Authenticator)
 		r.Get("/", productHandler.FetchPaged)
 		r.Get("/{id}", productHandler.FetchById)

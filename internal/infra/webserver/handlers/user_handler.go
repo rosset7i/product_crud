@@ -17,14 +17,14 @@ import (
 type UserHandler struct {
 	UserDB       *database.UserRepository
 	Jwt          *jwtauth.JWTAuth
-	JwtExpiresIn int
+	JwtExpiresIn time.Duration
 }
 
-func NewUserHandler(userDb *database.UserRepository, config *config.Config) *UserHandler {
+func NewUserHandler(userDb *database.UserRepository, c *config.Conf) *UserHandler {
 	return &UserHandler{
 		UserDB:       userDb,
-		Jwt:          config.TokenAuth,
-		JwtExpiresIn: config.JWTExpiresIn,
+		Jwt:          c.Auth.JwtAuth,
+		JwtExpiresIn: c.Auth.JwtExpiresIn,
 	}
 }
 
@@ -97,7 +97,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	_, tokenString, err := h.Jwt.Encode(map[string]any{
 		"sub": user.Id.String(),
-		"exp": time.Now().Add(time.Second * time.Duration(h.JwtExpiresIn)).Unix(),
+		"exp": time.Now().Add(h.JwtExpiresIn).Unix(),
 	})
 	if err != nil {
 		webserver.WriteError(w, http.StatusInternalServerError, err.Error())
