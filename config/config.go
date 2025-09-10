@@ -48,3 +48,12 @@ func New() *Conf {
 
 	return &c
 }
+
+func NewDB() *ConfDB {
+	var c ConfDB
+	if err := envdecode.StrictDecode(&c); err != nil {
+		log.Fatalf("Failed to decode: %s", err)
+	}
+
+	return &c
+}

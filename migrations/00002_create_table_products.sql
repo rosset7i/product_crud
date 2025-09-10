@@ -1,3 +1,5 @@
+-- +goose Up
+-- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS products (
     id UUID PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -5,7 +7,9 @@ CREATE TABLE IF NOT EXISTS products (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+-- +goose StatementEnd
 
----- create above / drop below ----
-
+-- +goose Down
+-- +goose StatementBegin
 DROP TABLE products;
+-- +goose StatementEnd
