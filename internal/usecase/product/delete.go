@@ -25,8 +25,8 @@ func NewDeleteUseCase(productRepository domain.ProductRepositoryInterface) *Dele
 	}
 }
 
-func (uc *DeleteUseCase) Execute(r DeleteRequest) (DeleteResponse, error) {
-	err := uc.productRepository.Delete(context.TODO(), r.Id)
+func (uc *DeleteUseCase) Execute(ctx context.Context, r DeleteRequest) (DeleteResponse, error) {
+	err := uc.productRepository.Delete(ctx, r.Id)
 	if err != nil {
 		return DeleteResponse{}, nil
 	}

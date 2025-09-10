@@ -27,13 +27,13 @@ func NewRegisterUseCase(userRepository domain.UserRepositoryInterface) *Register
 	}
 }
 
-func (uc *RegisterUseCase) Execute(r RegisterRequest) (RegisterResponse, error) {
+func (uc *RegisterUseCase) Execute(ctx context.Context, r RegisterRequest) (RegisterResponse, error) {
 	user, err := domain.NewUser(r.Name, r.Email, r.Password)
 	if err != nil {
 		return RegisterResponse{}, err
 	}
 
-	if err = uc.userRepository.Create(context.TODO(), user); err != nil {
+	if err = uc.userRepository.Create(ctx, user); err != nil {
 		return RegisterResponse{}, err
 	}
 

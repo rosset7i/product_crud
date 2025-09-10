@@ -1,7 +1,6 @@
 package web
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -46,7 +45,7 @@ func (h *ProductHandler) FetchPaged(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := product.NewFetchPagedProductsUseCase(h.productRepository).Execute(product.FetchPagedProductsRequest{
+	response, err := product.NewFetchPagedProductsUseCase(h.productRepository).Execute(r.Context(), product.FetchPagedProductsRequest{
 		PageNumber: pageNumber,
 		PageSize:   pageSize,
 		Sort:       sort,
@@ -76,7 +75,7 @@ func (h *ProductHandler) FetchById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := product.NewFetchByIdUseCase(h.productRepository).Execute(product.FetchByIdRequest{Id: id})
+	response, err := product.NewFetchByIdUseCase(h.productRepository).Execute(r.Context(), product.FetchByIdRequest{Id: id})
 	if err != nil {
 		writeError(w, http.StatusNotFound, err.Error())
 		return
@@ -94,14 +93,13 @@ func (h *ProductHandler) FetchById(w http.ResponseWriter, r *http.Request) {
 // @Router       /v1/products [post]
 // @Security Bearer
 func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var req product.CreateRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
+	req, err := decodeJSONBody[product.CreateRequest](r)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	response, err := product.NewCreateUseCase(h.productRepository).Execute(req)
+	response, err := product.NewCreateUseCase(h.productRepository).Execute(r.Context(), req)
 	if err != nil {
 		writeError(w, http.StatusUnprocessableEntity, err.Error())
 		return
@@ -119,14 +117,13 @@ func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 // @Router       /v1/products [put]
 // @Security Bearer
 func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
-	var req product.UpdateRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
+	req, err := decodeJSONBody[product.UpdateRequest](r)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	response, err := product.NewUpdateUseCase(h.productRepository).Execute(req)
+	response, err := product.NewUpdateUseCase(h.productRepository).Execute(r.Context(), req)
 	if err != nil {
 		writeError(w, http.StatusUnprocessableEntity, err.Error())
 		return
@@ -150,7 +147,7 @@ func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := product.NewDeleteUseCase(h.productRepository).Execute(product.DeleteRequest{Id: id})
+	response, err := product.NewDeleteUseCase(h.productRepository).Execute(r.Context(), product.DeleteRequest{Id: id})
 	if err != nil {
 		writeError(w, http.StatusUnprocessableEntity, err.Error())
 		return

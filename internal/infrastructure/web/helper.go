@@ -18,3 +18,9 @@ func writeJSON(w http.ResponseWriter, status int, payload any) {
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(payload)
 }
+
+func decodeJSONBody[T any](r *http.Request) (T, error) {
+	var payload T
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	return payload, err
+}

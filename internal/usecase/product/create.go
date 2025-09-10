@@ -26,13 +26,13 @@ func NewCreateUseCase(productRepository domain.ProductRepositoryInterface) *Crea
 	}
 }
 
-func (uc *CreateUseCase) Execute(r CreateRequest) (CreateResponse, error) {
+func (uc *CreateUseCase) Execute(ctx context.Context, r CreateRequest) (CreateResponse, error) {
 	p, err := domain.NewProduct(r.Name, r.Price)
 	if err != nil {
 		return CreateResponse{}, nil
 	}
 
-	err = uc.productRepository.Create(context.TODO(), p)
+	err = uc.productRepository.Create(ctx, p)
 	if err != nil {
 		return CreateResponse{}, nil
 	}

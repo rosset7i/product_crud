@@ -36,9 +36,9 @@ func NewFetchPagedProductsUseCase(productRepository domain.ProductRepositoryInte
 	}
 }
 
-func (uc *FetchPagedProductsUseCase) Execute(r FetchPagedProductsRequest) (FetchPagedProductsResponse, error) {
+func (uc *FetchPagedProductsUseCase) Execute(ctx context.Context, r FetchPagedProductsRequest) (FetchPagedProductsResponse, error) {
 	products, err := uc.productRepository.FetchPaged(
-		context.TODO(),
+		ctx,
 		r.PageNumber,
 		r.PageSize,
 		r.Sort,

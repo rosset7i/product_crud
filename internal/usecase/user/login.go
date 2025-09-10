@@ -31,8 +31,8 @@ func NewLoginUseCase(userRepository domain.UserRepositoryInterface, jwtAuth *jwt
 	}
 }
 
-func (uc *LoginUseCase) Execute(r LoginRequest) (LoginResponse, error) {
-	user, err := uc.userRepository.FetchByEmail(context.TODO(), r.Email)
+func (uc *LoginUseCase) Execute(ctx context.Context, r LoginRequest) (LoginResponse, error) {
+	user, err := uc.userRepository.FetchByEmail(ctx, r.Email)
 	if err != nil {
 		return LoginResponse{}, err
 	}

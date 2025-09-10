@@ -30,8 +30,8 @@ func NewFetchByIdUseCase(productRepository domain.ProductRepositoryInterface) *F
 	}
 }
 
-func (uc *FetchByIdUseCase) Execute(r FetchByIdRequest) (FetchByIdResponse, error) {
-	p, err := uc.productRepository.FetchById(context.TODO(), r.Id)
+func (uc *FetchByIdUseCase) Execute(ctx context.Context, r FetchByIdRequest) (FetchByIdResponse, error) {
+	p, err := uc.productRepository.FetchById(ctx, r.Id)
 	if err != nil {
 		return FetchByIdResponse{}, nil
 	}

@@ -28,8 +28,8 @@ func NewUpdateUseCase(productRepository domain.ProductRepositoryInterface) *Upda
 	}
 }
 
-func (uc *UpdateUseCase) Execute(r UpdateRequest) (UpdateResponse, error) {
-	p, err := uc.productRepository.FetchById(context.TODO(), r.Id)
+func (uc *UpdateUseCase) Execute(ctx context.Context, r UpdateRequest) (UpdateResponse, error) {
+	p, err := uc.productRepository.FetchById(ctx, r.Id)
 	if err != nil {
 		return UpdateResponse{}, nil
 	}
@@ -38,7 +38,7 @@ func (uc *UpdateUseCase) Execute(r UpdateRequest) (UpdateResponse, error) {
 	p.Price = r.Price
 	p.UpdatedAt = time.Now()
 
-	err = uc.productRepository.Update(context.TODO(), p)
+	err = uc.productRepository.Update(ctx, p)
 	if err != nil {
 		return UpdateResponse{}, nil
 	}
