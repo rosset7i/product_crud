@@ -16,8 +16,9 @@ import (
 )
 
 type Server struct {
-	c  *config.Conf
-	db *pgxpool.Pool
+	c         *config.Conf
+	db        *pgxpool.Pool
+	container *Container
 }
 
 func NewServer(c *config.Conf) *Server {
@@ -28,6 +29,8 @@ func NewServer(c *config.Conf) *Server {
 }
 
 func (s *Server) Run() {
+	s.init()
+
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", s.c.Server.Port),
 		Handler:      s.MapHandlers(s.c),

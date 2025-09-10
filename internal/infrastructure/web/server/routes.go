@@ -8,8 +8,6 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/go-chi/jwtauth"
 	"github.com/rosset7i/product_crud/config"
-	"github.com/rosset7i/product_crud/internal/infrastructure/database"
-	"github.com/rosset7i/product_crud/internal/infrastructure/web"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -27,13 +25,13 @@ func (s *Server) MapHandlers(c *config.Conf) http.Handler {
 	r.Use(middleware.Recoverer)
 
 	r.Route("/v1", func(r chi.Router) {
-		userHandler := web.NewUserHandler(database.NewUserRepository(s.db), c)
+		userHandler := s.container.UserHandler
 		r.Route("/users", func(r chi.Router) {
 			r.Post("/register", userHandler.Register)
 			r.Post("/login", userHandler.Login)
 		})
 
-		productHandler := web.NewProductHandler(database.NewProductRepository(s.db))
+		productHandler := s.container.ProductHandler
 		r.Route("/products", func(r chi.Router) {
 			r.Use(jwtauth.Verifier(c.Auth.JwtAuth))
 			r.Use(jwtauth.Authenticator)
