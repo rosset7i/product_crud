@@ -31,7 +31,5 @@ func (uc *DeleteUseCase) Execute(r DeleteRequest) (DeleteResponse, error) {
 		return DeleteResponse{}, nil
 	}
 
-	return DeleteResponse{
-		Id: r.Id,
-	}, nil
+	return DeleteResponse(r), nil
 }

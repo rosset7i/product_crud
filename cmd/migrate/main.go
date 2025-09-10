@@ -24,7 +24,10 @@ var (
 
 func main() {
 	flags.Usage = usage
-	flags.Parse(os.Args[1:])
+	err := flags.Parse(os.Args[1:])
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 
 	args := flags.Args()
 	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
