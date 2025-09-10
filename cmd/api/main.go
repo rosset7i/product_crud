@@ -1,120 +1,19 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	"log"
-	"net/http"
-	"os/signal"
-	"syscall"
-	"time"
-
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/jwtauth"
-	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/rosset7i/product_crud/config"
 	_ "github.com/rosset7i/product_crud/docs"
-	"github.com/rosset7i/product_crud/internal/infrastructure/database"
-	"github.com/rosset7i/product_crud/internal/infrastructure/web"
-	httpSwagger "github.com/swaggo/http-swagger"
+	"github.com/rosset7i/product_crud/internal/infrastructure/web/server"
 )
 
 // @title           product_crud API
 // @version         1.0
-// @description     product_crud is an API for managing users and products.
-// @description     It provides authentication endpoints and a product catalog with CRUD operations.
-//
-// @termsOfService  http://swagger.io/terms/
-//
-// @contact.name    product_crud API Support
-// @contact.url     http://www.swagger.io/support
-// @contact.email   support@swagger.io
-//
-// @license.name    Apache 2.0
-// @license.url     http://www.apache.org/licenses/LICENSE-2.0.html
-//
-// @host            localhost:7000
-// @BasePath        /
-//
+
 // @securityDefinitions.apiKey  Bearer
 // @in                        header
 // @name                      Authorization
 func main() {
-	c := config.New()
-
-	db, err := database.New(context.Background(), &c.DB)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	s := &http.Server{
-		Addr:         fmt.Sprintf(":%d", c.Server.Port),
-		Handler:      router(c, db),
-		ReadTimeout:  c.Server.TimeoutRead,
-		WriteTimeout: c.Server.TimeoutWrite,
-		IdleTimeout:  c.Server.TimeoutIdle,
-	}
-
-	shutdown := make(chan bool)
-
-	go gracefulShutdown(s, shutdown)
-
-	log.Printf("Starting server at :%d", c.Server.Port)
-	if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatal(err)
-	}
-
-	<-shutdown
-	log.Printf("Server exited.")
-}
-
-func gracefulShutdown(s *http.Server, shutdown chan bool) {
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
-
-	<-ctx.Done()
-	stop()
-
-	log.Println("shutting down gracefully, press Ctrl+C again to force")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	if err := s.Shutdown(ctx); err != nil {
-		log.Fatalf("Server forced to shutdown: %v", err)
-	}
-
-	log.Println("Graceful shutdown complete.")
-	shutdown <- true
-}
-
-func router(c *config.Conf, db *pgxpool.Pool) http.Handler {
-	userHandler := web.NewUserHandler(database.NewUserRepository(db), c)
-	productHandler := web.NewProductHandler(database.NewProductRepository(db))
-
-	r := chi.NewRouter()
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Route("/users", func(r chi.Router) {
-		r.Post("/register", userHandler.Register)
-		r.Post("/login", userHandler.Login)
-	})
-
-	r.Route("/products", func(r chi.Router) {
-		r.Use(jwtauth.Verifier(c.Auth.JwtAuth))
-		r.Use(jwtauth.Authenticator)
-		r.Get("/", productHandler.FetchPaged)
-		r.Get("/{id}", productHandler.FetchById)
-		r.Post("/", productHandler.Create)
-		r.Put("/", productHandler.Update)
-		r.Delete("/", productHandler.Delete)
-	})
-
-	r.Get("/docs/*", httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:7000/docs/doc.json"),
-	))
-
-	return r
+	s := server.NewServer(config.New())
+	s.Run()
 }

@@ -3,31 +3,32 @@ package database
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rosset7i/product_crud/config"
 )
 
-func New(ctx context.Context, c *config.ConfDB) (*pgxpool.Pool, error) {
+func New(ctx context.Context, c *config.ConfDB) *pgxpool.Pool {
 	config, err := pgxpool.ParseConfig(buildConnectionString(c))
 	if err != nil {
-		return nil, err
+		log.Fatal(err)
 	}
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
-		return nil, err
+		log.Fatal(err)
 	}
 
 	ctxPing, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	if err := pool.Ping(ctxPing); err != nil {
 		pool.Close()
-		return nil, err
+		log.Fatal(err)
 	}
 
-	return pool, nil
+	return pool
 }
 
 func buildConnectionString(c *config.ConfDB) string {

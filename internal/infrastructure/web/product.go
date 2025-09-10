@@ -22,18 +22,16 @@ func NewProductHandler(productRepository *database.ProductRepository) *ProductHa
 }
 
 // List Products godoc
-// @Summary      List products
-// @Description  Retrieve a paginated list of products with optional sorting
 // @Tags         products
 // @Accept       json
 // @Produce      json
-// @Param        pageNumber  query     int     false "pageNumber"
-// @Param        pageSize    query     int     false "pageSize"
-// @Param        sort        query     string  false "sort"
+// @Param        pageNumber  query     int     true "pageNumber"
+// @Param        pageSize    query     int     true "pageSize"
+// @Param        sort        query     string  true "sort"
 // @Success      200         {object}  product.FetchPagedProductsResponse
 // @Failure      400         {object}  errorResponse
 // @Failure      422         {object}  errorResponse
-// @Router       /products [get]
+// @Router       /v1/products [get]
 // @Security Bearer
 func (h *ProductHandler) FetchPaged(w http.ResponseWriter, r *http.Request) {
 	pageNumber, err := strconv.Atoi(r.URL.Query().Get("pageNumber"))
@@ -62,8 +60,6 @@ func (h *ProductHandler) FetchPaged(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetProduct godoc
-// @Summary      Get product by ID
-// @Description  Retrieve details of a single product by its ID
 // @Tags         products
 // @Accept       json
 // @Produce      json
@@ -71,7 +67,7 @@ func (h *ProductHandler) FetchPaged(w http.ResponseWriter, r *http.Request) {
 // @Success      200  {object}  product.FetchByIdResponse
 // @Failure      400  {object}  errorResponse
 // @Failure      404  {object}  errorResponse
-// @Router       /products/{id} [get]
+// @Router       /v1/products/{id} [get]
 // @Security Bearer
 func (h *ProductHandler) FetchById(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
@@ -90,16 +86,12 @@ func (h *ProductHandler) FetchById(w http.ResponseWriter, r *http.Request) {
 }
 
 // Create Product godoc
-// @Summary      Create a new product
-// @Description  Create a new product with a name and price
 // @Tags         products
-// @Accept       json
-// @Produce      json
-// @Param        request  body      product.CreateRequest  true "CreateRequest"
+// @Param        request  body      product.CreateRequest  true "payload"
 // @Success      201      {object}  product.CreateResponse
 // @Failure      400      {object}  errorResponse
 // @Failure      422      {object}  errorResponse
-// @Router       /products [post]
+// @Router       /v1/products [post]
 // @Security Bearer
 func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req product.CreateRequest
@@ -119,16 +111,12 @@ func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateProduct godoc
-// @Summary      Update an existing product
-// @Description  Update product details (name and price)
 // @Tags         products
-// @Accept       json
-// @Produce      json
-// @Param        request  body      product.UpdateRequest  true "UpdateRequest"
+// @Param        request  body      product.UpdateRequest  true "payload"
 // @Success      200      {object}  product.UpdateResponse
 // @Failure      400      {object}  errorResponse
 // @Failure      422      {object}  errorResponse
-// @Router       /products [put]
+// @Router       /v1/products [put]
 // @Security Bearer
 func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 	var req product.UpdateRequest
@@ -148,16 +136,12 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteProduct godoc
-// @Summary      Delete a product
-// @Description  Permanently delete a product by its ID
 // @Tags         products
-// @Accept       json
-// @Produce      json
 // @Param        id   query     string  true "id"
 // @Success      200  {object}  product.DeleteResponse
 // @Failure      400  {object}  errorResponse
 // @Failure      422  {object}  errorResponse
-// @Router       /products [delete]
+// @Router       /v1/products [delete]
 // @Security Bearer
 func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(r.URL.Query().Get("id"))

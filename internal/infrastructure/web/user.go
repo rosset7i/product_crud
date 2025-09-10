@@ -31,15 +31,11 @@ var (
 )
 
 // Register godoc
-// @Summary      Register a new user
-// @Description  Creates a new user with name, email, and password
 // @Tags         Users
-// @Accept       json
-// @Produce      json
-// @Param        request  body      user.RegisterRequest  true "RegisterRequest"
+// @Param        request  body      user.RegisterRequest  true "payload"
 // @Success      201      {object}  user.RegisterResponse
 // @Failure      400      {object}  errorResponse
-// @Router       /users/register [post]
+// @Router       /v1/users/register [post]
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req user.RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -57,16 +53,12 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 // Login godoc
-// @Summary      Authenticate a user
-// @Description  Validates user credentials and returns a JWT token
 // @Tags         Users
-// @Accept       json
-// @Produce      json
-// @Param        request  body      user.LoginRequest   true "LoginRequest"
+// @Param        request  body      user.LoginRequest   true "payload"
 // @Success      200      {object}  user.LoginResponse
 // @Failure      400      {object}  errorResponse
 // @Failure      401      {object}  errorResponse
-// @Router       /users/login [post]
+// @Router       /v1/users/login [post]
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req user.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

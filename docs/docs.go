@@ -9,29 +9,19 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "termsOfService": "http://swagger.io/terms/",
-        "contact": {
-            "name": "product_crud API Support",
-            "url": "http://www.swagger.io/support",
-            "email": "support@swagger.io"
-        },
-        "license": {
-            "name": "Apache 2.0",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-        },
+        "contact": {},
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/products": {
+        "/v1/products": {
             "get": {
                 "security": [
                     {
                         "Bearer": []
                     }
                 ],
-                "description": "Retrieve a paginated list of products with optional sorting",
                 "consumes": [
                     "application/json"
                 ],
@@ -41,25 +31,27 @@ const docTemplate = `{
                 "tags": [
                     "products"
                 ],
-                "summary": "List products",
                 "parameters": [
                     {
                         "type": "integer",
                         "description": "pageNumber",
                         "name": "pageNumber",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "integer",
                         "description": "pageSize",
                         "name": "pageSize",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "string",
                         "description": "sort",
                         "name": "sort",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -89,20 +81,12 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "Update product details (name and price)",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "products"
                 ],
-                "summary": "Update an existing product",
                 "parameters": [
                     {
-                        "description": "UpdateRequest",
+                        "description": "payload",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -138,20 +122,12 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "Create a new product with a name and price",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "products"
                 ],
-                "summary": "Create a new product",
                 "parameters": [
                     {
-                        "description": "CreateRequest",
+                        "description": "payload",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -187,17 +163,9 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "Permanently delete a product by its ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "products"
                 ],
-                "summary": "Delete a product",
                 "parameters": [
                     {
                         "type": "string",
@@ -229,14 +197,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/products/{id}": {
+        "/v1/products/{id}": {
             "get": {
                 "security": [
                     {
                         "Bearer": []
                     }
                 ],
-                "description": "Retrieve details of a single product by its ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -246,7 +213,6 @@ const docTemplate = `{
                 "tags": [
                     "products"
                 ],
-                "summary": "Get product by ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -278,22 +244,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/login": {
+        "/v1/users/login": {
             "post": {
-                "description": "Validates user credentials and returns a JWT token",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Users"
                 ],
-                "summary": "Authenticate a user",
                 "parameters": [
                     {
-                        "description": "LoginRequest",
+                        "description": "payload",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -324,22 +282,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/register": {
+        "/v1/users/register": {
             "post": {
-                "description": "Creates a new user with name, email, and password",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Users"
                 ],
-                "summary": "Register a new user",
                 "parameters": [
                     {
-                        "description": "RegisterRequest",
+                        "description": "payload",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -528,11 +478,11 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:7000",
-	BasePath:         "/",
+	Host:             "",
+	BasePath:         "",
 	Schemes:          []string{},
 	Title:            "product_crud API",
-	Description:      "product_crud is an API for managing users and products.\nIt provides authentication endpoints and a product catalog with CRUD operations.",
+	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
