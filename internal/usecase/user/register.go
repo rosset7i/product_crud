@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
 	"github.com/rosset7i/product_crud/internal/domain"
@@ -18,26 +19,36 @@ type RegisterResponse struct {
 }
 
 type RegisterUseCase struct {
-	userRepository domain.UserRepositoryInterface
+	userRepository domain.UserRepository
 }
 
-func NewRegisterUseCase(userRepository domain.UserRepositoryInterface) *RegisterUseCase {
+func NewRegisterUseCase(userRepository domain.UserRepository) *RegisterUseCase {
 	return &RegisterUseCase{
 		userRepository: userRepository,
 	}
 }
 
+var (
+	errUserAlreadyExists   = errors.New("user with that email already exists")
+	errCouldNotPersistUser = errors.New("failed to persist user")
+)
+
 func (uc *RegisterUseCase) Execute(ctx context.Context, r RegisterRequest) (RegisterResponse, error) {
-	user, err := domain.NewUser(r.Name, r.Email, r.Password)
+	user, _ := uc.userRepository.FetchByEmail(ctx, r.Email)
+	if user != nil {
+		return RegisterResponse{}, errUserAlreadyExists
+	}
+
+	newUser, err := domain.NewUser(r.Name, r.Email, r.Password)
 	if err != nil {
 		return RegisterResponse{}, err
 	}
 
-	if err = uc.userRepository.Create(ctx, user); err != nil {
-		return RegisterResponse{}, err
+	if err = uc.userRepository.Create(ctx, newUser); err != nil {
+		return RegisterResponse{}, errCouldNotPersistUser
 	}
 
 	return RegisterResponse{
-		Id: user.Id,
+		Id: newUser.Id,
 	}, nil
 }

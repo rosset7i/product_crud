@@ -16,10 +16,10 @@ type DeleteResponse struct {
 }
 
 type DeleteUseCase struct {
-	productRepository domain.ProductRepositoryInterface
+	productRepository domain.ProductRepository
 }
 
-func NewDeleteUseCase(productRepository domain.ProductRepositoryInterface) *DeleteUseCase {
+func NewDeleteUseCase(productRepository domain.ProductRepository) *DeleteUseCase {
 	return &DeleteUseCase{
 		productRepository: productRepository,
 	}
@@ -28,7 +28,7 @@ func NewDeleteUseCase(productRepository domain.ProductRepositoryInterface) *Dele
 func (uc *DeleteUseCase) Execute(ctx context.Context, r DeleteRequest) (DeleteResponse, error) {
 	err := uc.productRepository.Delete(ctx, r.Id)
 	if err != nil {
-		return DeleteResponse{}, nil
+		return DeleteResponse{}, err
 	}
 
 	return DeleteResponse(r), nil

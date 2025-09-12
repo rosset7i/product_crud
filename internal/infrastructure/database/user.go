@@ -20,7 +20,7 @@ func NewUserRepository(db *pgxpool.Pool) *UserRepository {
 func (r *UserRepository) FetchByEmail(ctx context.Context, email string) (*domain.User, error) {
 	var u domain.User
 	err := r.db.QueryRow(
-		context.Background(),
+		ctx,
 		`SELECT id, name, email, password_hash, created_at, updated_at
 		FROM users
 		WHERE email = $1`,
@@ -35,7 +35,7 @@ func (r *UserRepository) FetchByEmail(ctx context.Context, email string) (*domai
 
 func (r *UserRepository) Create(ctx context.Context, user *domain.User) error {
 	_, err := r.db.Exec(
-		context.Background(),
+		ctx,
 		"INSERT INTO users (id, name, email, password_hash, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)",
 		user.Id,
 		user.Name,

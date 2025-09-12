@@ -17,10 +17,10 @@ type CreateResponse struct {
 }
 
 type CreateUseCase struct {
-	productRepository domain.ProductRepositoryInterface
+	productRepository domain.ProductRepository
 }
 
-func NewCreateUseCase(productRepository domain.ProductRepositoryInterface) *CreateUseCase {
+func NewCreateUseCase(productRepository domain.ProductRepository) *CreateUseCase {
 	return &CreateUseCase{
 		productRepository: productRepository,
 	}
@@ -29,12 +29,12 @@ func NewCreateUseCase(productRepository domain.ProductRepositoryInterface) *Crea
 func (uc *CreateUseCase) Execute(ctx context.Context, r CreateRequest) (CreateResponse, error) {
 	p, err := domain.NewProduct(r.Name, r.Price)
 	if err != nil {
-		return CreateResponse{}, nil
+		return CreateResponse{}, err
 	}
 
 	err = uc.productRepository.Create(ctx, p)
 	if err != nil {
-		return CreateResponse{}, nil
+		return CreateResponse{}, err
 	}
 
 	return CreateResponse{

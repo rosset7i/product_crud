@@ -21,10 +21,10 @@ type FetchByIdResponse struct {
 }
 
 type FetchByIdUseCase struct {
-	productRepository domain.ProductRepositoryInterface
+	productRepository domain.ProductRepository
 }
 
-func NewFetchByIdUseCase(productRepository domain.ProductRepositoryInterface) *FetchByIdUseCase {
+func NewFetchByIdUseCase(productRepository domain.ProductRepository) *FetchByIdUseCase {
 	return &FetchByIdUseCase{
 		productRepository: productRepository,
 	}
@@ -33,7 +33,7 @@ func NewFetchByIdUseCase(productRepository domain.ProductRepositoryInterface) *F
 func (uc *FetchByIdUseCase) Execute(ctx context.Context, r FetchByIdRequest) (FetchByIdResponse, error) {
 	p, err := uc.productRepository.FetchById(ctx, r.Id)
 	if err != nil {
-		return FetchByIdResponse{}, nil
+		return FetchByIdResponse{}, err
 	}
 
 	return FetchByIdResponse{

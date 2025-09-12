@@ -19,10 +19,10 @@ type UpdateResponse struct {
 }
 
 type UpdateUseCase struct {
-	productRepository domain.ProductRepositoryInterface
+	productRepository domain.ProductRepository
 }
 
-func NewUpdateUseCase(productRepository domain.ProductRepositoryInterface) *UpdateUseCase {
+func NewUpdateUseCase(productRepository domain.ProductRepository) *UpdateUseCase {
 	return &UpdateUseCase{
 		productRepository: productRepository,
 	}
@@ -31,7 +31,7 @@ func NewUpdateUseCase(productRepository domain.ProductRepositoryInterface) *Upda
 func (uc *UpdateUseCase) Execute(ctx context.Context, r UpdateRequest) (UpdateResponse, error) {
 	p, err := uc.productRepository.FetchById(ctx, r.Id)
 	if err != nil {
-		return UpdateResponse{}, nil
+		return UpdateResponse{}, err
 	}
 
 	p.Name = r.Name
@@ -40,7 +40,7 @@ func (uc *UpdateUseCase) Execute(ctx context.Context, r UpdateRequest) (UpdateRe
 
 	err = uc.productRepository.Update(ctx, p)
 	if err != nil {
-		return UpdateResponse{}, nil
+		return UpdateResponse{}, err
 	}
 
 	return UpdateResponse{

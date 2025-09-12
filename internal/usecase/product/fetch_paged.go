@@ -27,10 +27,10 @@ type ProductResponse struct {
 }
 
 type FetchPagedProductsUseCase struct {
-	productRepository domain.ProductRepositoryInterface
+	productRepository domain.ProductRepository
 }
 
-func NewFetchPagedProductsUseCase(productRepository domain.ProductRepositoryInterface) *FetchPagedProductsUseCase {
+func NewFetchPagedProductsUseCase(productRepository domain.ProductRepository) *FetchPagedProductsUseCase {
 	return &FetchPagedProductsUseCase{
 		productRepository: productRepository,
 	}
@@ -50,7 +50,7 @@ func (uc *FetchPagedProductsUseCase) Execute(ctx context.Context, r FetchPagedPr
 	return FetchPagedProductsResponse{Products: mapProducts(products)}, nil
 }
 
-func mapProducts(products []domain.Product) []ProductResponse {
+func mapProducts(products []*domain.Product) []ProductResponse {
 	outputs := make([]ProductResponse, len(products))
 	for i, p := range products {
 		outputs[i] = ProductResponse{
